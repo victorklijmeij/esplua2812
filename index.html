@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="ESP8266 LEDbar landing page">
+    <meta name="author" content="Victor Klijmeij">
+    <link rel="icon" href="favicon.ico">
+
+    <title>LEDbar</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+  <body>
+
+    <!-- Begin page content -->
+    <div class="container">
+      <div class="page-header">
+        <h1>LEDbar</h1>
+      </div>
+      <p class="lead">ESP8266 lua LED bar with http POST interface</p>
+      <p>Send color code for entire strip as {Green, Red, Blue}</p>
+      Example:</br>
+      <code>
+          curl -X POST -d '{100,80,0}' IPofESP
+      </code>
+    </div>
+  </body>
+</html>
