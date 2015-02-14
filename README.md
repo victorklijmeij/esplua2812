@@ -18,4 +18,5 @@ https://github.com/themadinventor/esptool
 After uploading the firmware set access point and load the three files onto the ESP.
 
 This can be done using esplorer, http://esp8266.ru/esplorer
+
 Select COM port and set the baudrate to 115200
