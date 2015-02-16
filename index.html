@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="ESP8266 LEDbar landing page">
-    <meta name="author" content="Victor Klijmeij">
-    <link rel="icon" href="favicon.ico">
-
-    <title>LEDbar</title>
-
-    <!-- Bootstrap core CSS -->
-    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+<head>
+  <title>LEDbar</title>
+  <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  <script src="http://jscolor.com/example/jscolor/jscolor.js" type="text/javascript"></script>
+  <script>
+  var state = {"red":0, "green":0, "blue":0,"ledstart":0,"ledend":62};
+  function updateInfo(color) {
+    state.red = Math.round(color.rgb[0]*250);
+    state.green = Math.round(color.rgb[1]*250);
+    state.blue = Math.round(color.rgb[2]*250);
+  }
+  </script>
   <body>
-
-    <!-- Begin page content -->
     <div class="container">
       <div class="page-header">
         <h1>LEDbar</h1>
@@ -22,8 +23,28 @@
       <p>Send color code for entire strip as {Green, Red, Blue}</p>
       Example:</br>
       <code>
-          curl -X POST -d '{100,80,0}' IPofESP
+        curl -X POST -d '{"red":100,"green":0,"blue":250,"ledstart":0,"ledend":62}' IPofESP
       </code>
+      <br>
+      <h2>Web color control</h2>
+      <p>Pick and set</p>
+      <input class="color {onImmediateChange:'updateInfo(this);'}" value="66ff00">
+      <button>Set</button>
     </div>
+    <script>
+    $(document).ready(function(){
+      $("button").click(function(){
+        $.ajax({
+          url: '/',
+          type: 'post',
+          dataType: 'json',
+          contentType: 'application/json; charset=UTF-8',
+          success: function (data) {
+            $('#target').html(data.msg);
+          }, data: JSON.stringify(state)
+        });
+      });
+    });
+    </script>
   </body>
 </html>

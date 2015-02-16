@@ -1,6 +1,24 @@
 -- Reset LEDbar
 gpio.ws2812(string.char(0,0,0):rep(62))
 
+--Simple Json parsing named string/integer
+function fromJson(MSG)
+   local hashMap = {}
+   for k,v in string.gmatch(MSG,'"(%w+)":"(%w+)",') do
+      hashMap[k] = v;
+   end
+   for k,v in string.gmatch(MSG,'"(%w+)":(%w+),') do
+      hashMap[k] = v;
+   end
+   for k,v in string.gmatch(MSG,'"(%w+)":"(%w+)"}') do
+      hashMap[k] = v;
+   end
+   for k,v in string.gmatch(MSG,'"(%w+)":(%w+)}') do
+      hashMap[k] = v;
+   end
+   return hashMap
+end
+
 -- Check connectivity
 if wifi.sta.getip() then
      espid=wifi.sta.getip()
@@ -30,8 +48,14 @@ if wifi.sta.getip() then
                               print(payload)
                          else
                               print(body)
-                              g, r, b = body:match("(%d+),(%d+),(%d+)")
-                              gpio.ws2812(string.char(g,r,b):rep(62))
+                              r=fromJson(body).red
+                              g=fromJson(body).green
+                              b=fromJson(body).blue
+                              ledstart=fromJson(body).ledstart
+                              ledend=fromJson(body).ledend
+                              --g, r, b = body:match("(%d+),(%d+),(%d+)")
+                              --gpio.ws2812(string.char(g,r,b):rep(62))
+                              gpio.ws2812(string.char(g,r,b):rep(ledend))
                               conn:send("HTTP/1.1 200 OK")
                          end
                     end
@@ -46,10 +70,17 @@ if wifi.sta.getip() then
 
                -- Handle GET
                elseif method == "GET" then
+                    --Content-Type: application/javascript
                     if url=="/" then
                          page = "index.html"
                     else
                          page = string.sub(url,2)
+                    end
+
+                    --Mimetype
+                    extension=page:match("%.(%a+)")
+                    if extension == "js" then
+                         conn:send("Content-Type: application/javascript")
                     end
 
                     print("debug: "..page)
