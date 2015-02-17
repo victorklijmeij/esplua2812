@@ -5,7 +5,7 @@ l = file.list();
 for k,v in pairs(l) do
 print("name:"..k..", size:"..v)
 end
--- reset lEDbar
+-- reset LEDbar
 gpio.ws2812(string.char(0,0,0):rep(10))
 
 cnt=0

@@ -1,6 +1,3 @@
--- Reset LEDbar
-gpio.ws2812(string.char(0,0,0):rep(62))
-
 --Simple Json parsing named string/integer
 function fromJson(MSG)
    local hashMap = {}
@@ -19,10 +16,44 @@ function fromJson(MSG)
    return hashMap
 end
 
+-- Range function
+function range(from, to, step)
+  step = step or 1
+  return function(_, lastvalue)
+    local nextvalue = lastvalue + step
+    if step > 0 and nextvalue <= to or step < 0 and nextvalue >= to or
+       step == 0
+    then
+      return nextvalue
+    end
+  end, nil, from - step
+end
+
+colorstring={}
+-- Led adress 1-100
+function getColorstring(r,g,b,lstart,lend)
+     lstart=lstart-1
+     lend=lend-1
+     local color=string.char(g,r,b)
+     for i in range(lstart,lend)
+     do
+          colorstring[i]=color
+     end
+     local rs=""
+     for i in range(0,99) 
+     do
+          rs=rs..colorstring[i]
+     end     
+     return rs
+end
+
+-- Reset LEDbar
+gpio.ws2812(getColorstring(0,0,0,1,100))
+--gpio.ws2812(string.char(0,0,0):rep(100))
+
 -- Check connectivity
 if wifi.sta.getip() then
      espid=wifi.sta.getip()
-
      -- light up first LED green as OK indicator
      gpio.ws2812(string.char(20,0,0))
 
@@ -39,24 +70,25 @@ if wifi.sta.getip() then
                -- Handle POST
                if method == "POST" then
                     if payload == nil then
-                         print("debug: No payload")
                          conn:send("HTTP/1.1 404 File Not Found")
                          conn:close()
                     else
                          body = payload:match("{.*}")
                          if body == nil then
-                              print(payload)
+                              conn:send("HTTP/1.1 418 I'm a teapot")
                          else
-                              print(body)
-                              r=fromJson(body).red
-                              g=fromJson(body).green
-                              b=fromJson(body).blue
-                              ledstart=fromJson(body).ledstart
-                              ledend=fromJson(body).ledend
-                              --g, r, b = body:match("(%d+),(%d+),(%d+)")
-                              --gpio.ws2812(string.char(g,r,b):rep(62))
-                              gpio.ws2812(string.char(g,r,b):rep(ledend))
-                              conn:send("HTTP/1.1 200 OK")
+                              r=fromJson(body).red+0
+                              g=fromJson(body).green+0
+                              b=fromJson(body).blue+0
+                              ledstart=fromJson(body).ledstart+0
+                              ledend=fromJson(body).ledend+0
+                              if r>=0 and r<256 and g>=0 and g<256 and b>=0 and b<256 
+                                 and ledstart >=1 and ledend<=100 then
+                                   gpio.ws2812(getColorstring(r,g,b,ledstart,ledend))
+                                   conn:send("HTTP/1.1 200 OK")
+                              else
+                                   conn:send("HTTP/1.1 418 I'm a teapot")
+                              end
                          end
                     end
 
@@ -80,7 +112,7 @@ if wifi.sta.getip() then
                     --Mimetype
                     extension=page:match("%.(%a+)")
                     if extension == "js" then
-                         conn:send("Content-Type: application/javascript")
+                         conn:send("Content-Type: application/javascript\r\r")
                     end
 
                     print("debug: "..page)
@@ -119,9 +151,7 @@ if wifi.sta.getip() then
 
      end)
 else
-     print "debug: Init failed no ip adress"
-     print "debug: Check station mode and ap settings"
-
+     -- Init failed no ip adress
      -- light up first LED red as Failure indicator
      gpio.ws2812(string.char(0,100,0))
 end
